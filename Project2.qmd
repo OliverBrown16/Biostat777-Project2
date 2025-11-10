@@ -19,6 +19,8 @@ To explore this, I plan to visualize the data in three main ways:
 
 3. A set of three maps to visualize the geographic distribution of each key variable (broadband access, senior population, and median income) side-by-side. This will help identify if the spatial pattern of broadband access more closely matches the pattern of income or age.
 
+## Data Extraction and Cleaning
+
 ```{r, message=FALSE, warning=FALSE, echo=FALSE}
 
 library(tidycensus)
@@ -167,6 +169,8 @@ head(final_data)
 
 ```
 
+## Visualizations:
+
 ### Visualization 1: Side-by-Side Scatter Plots
 
 
@@ -274,6 +278,14 @@ map_income <- ggplot(final_data) +
 ```
 
 This final visualization uses geom_sfto create three maps showing the geographic distribution of each key variable. One map is made for broadband access, one for median income, and one for the senior population.
+
+## Analysis:
+
+This analysis investigates if broadband access in Washington State counties is better explained by population age or affordability. Data was sourced from the U.S. Census Bureau's 2023 5-year American Community Survey (ACS) via the tidycensus API. Data for median household income, total population, and population 65+ were extracted. These were processed to create three key variables: percentage of population 65+, median household income, and percentage of households with broadband. The variables were then joined and analyzed for correlation and geographic distribution.
+
+The analysis reveals that median household income is a significantly stronger predictor of broadband access than the county's senior (65+) population. A strong, positive linear correlation exists between median income and broadband access rates. Conversely, the relationship between the senior population and broadband access was weaker and less conclusive. Geographic analysis confirmed this, as the spatial map of broadband access closely mirrored the map of median income, but not the map of the senior population.
+
+This analysis has several limitations. First, the county-level data is subject to the ecological fallacy, meaning results cannot be assumed to apply to individuals. Second, the analysis does not control for the key confounding variable of infrastructure availability. Physical infrastructure, which often correlates with income, was not included. Finally, the ACS data provides estimates, and the "broadband" variable lacks details on connection speed or quality.
 
 # Part 2 
 
