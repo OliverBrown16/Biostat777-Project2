@@ -1,0 +1,352 @@
+---
+title: "Project2"
+format: html
+---
+
+# Part 1
+
+## Question:
+
+Is access to broadband internet in Washington State's counties better explained by age or affordability?
+
+This analysis investigates the relationship between three county-level variables in Washington State: the percentage of households with broadband, the percentage of the population aged 65 or older, and the median household income. The goal is to determine which factor, age or income, has a stronger correlation with broadband subscription rates.
+
+To explore this, I plan to visualize the data in three main ways:
+
+1. A set of side-by-side scatter plots. The first plot will show Median Income vs. Broadband Access, and the second will show Percent 65+ vs. Broadband Access. This will allow for a direct visual comparison of the strength and direction of each continuous relationship.
+
+2. A pair of side by side boxplots. This will involve binning counties into quartiles (Lowest to Highest) based on their median income and senior population. This plot will help compare the median and distribution of broadband access across these distinct groups, showing how moving from the lowest to highest group for each variable impacts access.
+
+3. A set of three maps to visualize the geographic distribution of each key variable (broadband access, senior population, and median income) side-by-side. This will help identify if the spatial pattern of broadband access more closely matches the pattern of income or age.
+
+```{r, message=FALSE, warning=FALSE, echo=FALSE}
+
+library(tidycensus)
+library(tidyverse)
+library(fs)
+library(patchwork)
+
+dir_create("data")
+
+#census_api_key("19fd8d5b9d01f28528d38d75acb6e2c924063482")
+
+```
+
+
+```{r setup_project, message=FALSE, warning=FALSE}
+
+state_abbr <- "WA"
+target_year <- 2023
+acs_survey <- "acs5"
+
+```
+
+```{r extract_internet, message=FALSE, warning=FALSE}
+
+internet_vars <- c(
+  total_hh = "B28011_001",
+  broadband_hh = "B28011_004"
+)
+
+internet_file_path <- "data/wa_internet_raw.rds"
+
+if (!file_exists(internet_file_path)) {
+  wa_internet_raw <- get_acs(
+    geography = "county",
+    state = state_abbr,
+    variables = internet_vars,
+    year = target_year,
+    survey = acs_survey,
+    geometry = TRUE
+  )
+  write_rds(wa_internet_raw, internet_file_path)
+} else {
+  wa_internet_raw <- read_rds(internet_file_path)
+}
+
+head(wa_internet_raw)
+
+```
+
+To get the total 65+ population, **purrr::map_chr()** is used to programmatically generate the list of all male and female senior age bracket variable IDs. The data is then saved locally as an .rds file to avoid repeat API calls.
+
+```{r extract_age, message=FALSE, warning=FALSE}
+
+age_vars_65plus_male <- map_chr(20:25, ~ paste0("B01001_0", .x))
+age_vars_65plus_female <- map_chr(44:49, ~ paste0("B01001_0", .x))
+
+age_vars <- c(
+  total_pop = "B01001_001",
+  age_vars_65plus_male,
+  age_vars_65plus_female
+)
+
+age_file_path <- "data/wa_age_raw.rds"
+
+if (!file_exists(age_file_path)) {
+  wa_age_raw <- get_acs(
+    geography = "county",
+    state = state_abbr,
+    variables = age_vars,
+    year = target_year,
+    survey = acs_survey,
+    geometry = FALSE
+  )
+  write_rds(wa_age_raw, age_file_path)
+} else {
+  wa_age_raw <- read_rds(age_file_path)
+}
+
+head(wa_age_raw)
+
+```
+
+```{r extract_income, message=FALSE, warning=FALSE}
+
+income_vars <- c(
+  median_income = "B19013_001"
+)
+
+income_file_path <- "data/wa_income_raw.rds"
+
+if (!file_exists(income_file_path)) {
+  wa_income_raw <- get_acs(
+    geography = "county",
+    state = state_abbr,
+    variables = income_vars,
+    year = target_year,
+    survey = acs_survey,
+    geometry = FALSE
+  )
+  write_rds(wa_income_raw, income_file_path)
+} else {
+  wa_income_raw <- read_rds(income_file_path)
+}
+
+head(wa_income_raw)
+
+```
+
+We then clean and merge the three raw datasets. The internet data is pivoted wide, the age data is summarized to sum all 65+ brackets, and percentages are calculated for both. Finally, the three clean data frames are put into a list and joined together using **purrr::reduce()**.
+
+```{r wrangle_data, message=FALSE, warning=FALSE, results='hide'}
+
+wa_internet_clean <- wa_internet_raw %>%
+  select(GEOID, NAME, variable, estimate, geometry) %>%
+  pivot_wider(
+    names_from = variable,
+    values_from = estimate
+  ) %>%
+  mutate(
+    pct_broadband = (broadband_hh / total_hh)
+  )
+
+wa_age_clean <- wa_age_raw %>%
+  group_by(GEOID, NAME) %>%
+  summarize(
+    total_pop = estimate[variable == "total_pop"],
+    pop_65plus = sum(estimate[variable != "total_pop"]),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    pct_65plus = (pop_65plus / total_pop)
+  )
+
+wa_income_clean <- wa_income_raw %>%
+  select(GEOID, median_income = estimate)
+
+data_list_to_join <- list(
+  wa_internet_clean,
+  select(wa_age_clean, GEOID, total_pop, pop_65plus, pct_65plus),
+  select(wa_income_clean, GEOID, median_income)
+)
+
+final_data <- reduce(data_list_to_join, left_join, by = "GEOID")
+
+head(final_data)
+
+```
+
+### Visualization 1: Side-by-Side Scatter Plots
+
+
+```{r compare_scatters, message=FALSE, warning=FALSE, fig.width=10, fig.height=5}
+
+plot_income <- ggplot(final_data, aes(x = median_income, y = pct_broadband)) +
+  geom_point(aes(size = total_pop), alpha = 0.7, color = "blue") +
+  geom_smooth(method = "lm", se = FALSE, color = "black") +
+  scale_x_continuous(labels = scales::dollar_format()) +
+  scale_y_continuous(labels = scales::percent_format()) +
+  labs(
+    title = "Income as a predictor",
+    subtitle = "There is a strong relationship between median \nincome and internet access",
+    x = "Median Household Income",
+    y = "Percent with Broadband",
+    size = "Total Pop"
+  ) +
+  theme_minimal()
+
+plot_age <- ggplot(final_data, aes(x = pct_65plus, y = pct_broadband)) +
+  geom_point(aes(size = total_pop), alpha = 0.7, color = "red") +
+  geom_smooth(method = "lm", se = FALSE, color = "black") +
+  scale_x_continuous(labels = scales::percent_format()) +
+  scale_y_continuous(labels = scales::percent_format()) +
+  labs(
+    title = "Age as a predictor",
+    subtitle = "There is a weaker relationship between age \nand internet access",
+    x = "Percent of Population 65+",
+    y = "",
+    size = "Total Pop"
+  ) +
+  theme_minimal()
+
+plot_income + plot_age
+
+```
+
+This plot directly compares the strength of our two predictors using geom_pointandgeom_smooth. The left plot shows Median Income vs. Broadband Access, while the right plot shows Senior Population vs. Broadband Access. The patchwork package combines them for a direct comparison.
+
+
+### Visualization 2: Side-by-Side Boxplots
+
+```{r boxplot_viz, message=FALSE, warning=FALSE, fig.width=10, fig.height=5}
+
+data_with_bins <- final_data %>%
+  mutate(
+    income_quartile = cut_number(median_income, 4,
+                                 labels = c("Lowest", "Low-Mid", "High-Mid", "Highest")),
+    age_quartile = cut_number(pct_65plus, 4,
+                                labels = c("Lowest", "Low-Mid", "High-Mid", "Highest"))
+  )
+
+plot_box_income <- ggplot(data_with_bins, aes(x = income_quartile, y = pct_broadband)) +
+  geom_boxplot(aes(fill = income_quartile), show.legend = FALSE) +
+  geom_point(alpha = 0.4) + 
+  scale_y_continuous(labels = scales::percent_format()) +
+  labs(
+    title = "Broadband Access by Income Quartile",
+    x = "Median Income Quartile",
+    y = "Percent with Broadband"
+  ) +
+  theme_minimal()
+
+plot_box_age <- ggplot(data_with_bins, aes(x = age_quartile, y = pct_broadband)) +
+  geom_boxplot(aes(fill = age_quartile), show.legend = FALSE) +
+  geom_point(alpha = 0.4) + 
+  scale_y_continuous(labels = scales::percent_format()) +
+  labs(
+    title = "Broadband Access by Senior (65+) Pop. Quartile",
+    x = "Senior Population Quartile",
+    y = ""
+  ) +
+  theme_minimal()
+
+plot_box_income + plot_box_age
+
+```
+
+This plot compares the variables by grouping counties into bins. First, cut_number()creates four equal-sized quartiles (Lowest to Highest) for both income and age. Then, geom_boxplot is used to visualize the distribution of broadband access within each of those groups.
+
+### Visualization 3: Maps
+
+```{r maps_viz, message=FALSE, warning=FALSE, fig.height=5, fig.width=9}
+
+map_broadband <- ggplot(final_data) +
+  geom_sf(aes(fill = pct_broadband)) +
+  scale_fill_viridis_c(option = "A", labels = scales::percent) +
+  labs(title = "Broadband Access", fill = "% Broadband") +
+  theme_void()
+
+map_65plus <- ggplot(final_data) +
+  geom_sf(aes(fill = pct_65plus)) +
+  scale_fill_viridis_c(option = "E", labels = scales::percent) +
+  labs(title = "Senior Population (65+)", fill = "% 65+ Pop") +
+  theme_void()
+
+map_income <- ggplot(final_data) +
+  geom_sf(aes(fill = median_income)) +
+  scale_fill_viridis_c(option = "G", labels = scales::dollar) +
+  labs(title = "Median Household Income", fill = "Median Income") +
+  theme_void()
+
+(map_income + map_65plus) / (map_broadband + plot_spacer())
+
+```
+
+This final visualization uses geom_sfto create three maps showing the geographic distribution of each key variable. One map is made for broadband access, one for median income, and one for the senior population.
+
+# Part 2 
+
+```{r message=FALSE, warning=FALSE}
+
+library(rvest)    
+library(ggrepel)
+library(readr)
+
+```
+
+```{r}
+
+url <- "https://en.wikipedia.org/wiki/2025_Seattle_Mariners_season"
+
+m_page <- read_html(url)
+
+game_log_raw <- m_page %>%
+  html_elements("table.wikitable") %>%
+  .[c(2, 3, 4, 5, 6, 7)] %>%
+  purrr::map_dfr(~ .x %>% 
+                   html_table(header = FALSE, fill = TRUE) %>%
+                   slice(-1)
+                 )
+
+mariners_file_path <- "data/mariners_gamelog_raw.rds"
+write_rds(game_log_raw, mariners_file_path)
+
+```
+
+```{r}
+
+# Read in our saved data
+game_log_clean <- read_rds("data/mariners_gamelog_raw.rds") %>%
+  as_tibble() %>%
+  
+  filter(str_detect(X9, "–")) %>%
+  
+  transmute(
+    game_number = parse_number(X1),
+    record_str = X9
+  ) %>%
+  
+  separate(record_str, into = c("wins_str", "losses_str"), sep = "–") %>%
+
+  transmute(
+    game_number = game_number,
+    wins = parse_number(wins_str),
+    losses = parse_number(losses_str),
+    win_differential = wins - losses
+  ) %>%
+  add_row(game_number = 0, wins = 0, losses = 0, win_differential = 0) %>%
+  arrange(game_number)
+
+tail(game_log_clean)
+
+```
+
+```{r}
+
+ggplot(game_log_clean, aes(x = game_number, y = win_differential)) +
+  geom_hline(yintercept = 0, linetype = "dashed", color = "grey") +
+  geom_line(color = "darkblue", linewidth = 0.75) +
+  labs(
+    title = "Seattle Mariners 2025 Season: Win-Loss Differential",
+    subtitle = "Plot of (Wins - Losses) after each game of the regular season",
+    x = "Game Number",
+    y = "Games Above / Below .500",
+    caption = "Data: Wikipedia '2025 Seattle Mariners season' page"
+  ) +
+  scale_x_continuous(breaks = c(1, 20, 40, 60, 81, 100, 120, 140, 162)) +
+  theme_minimal()
+
+```
+      
+
