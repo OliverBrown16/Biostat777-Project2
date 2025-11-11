@@ -6,8 +6,9 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
+<meta name="author" content="Oliver Brown">
 
-<title>Project2</title>
+<title>Statistical Programming Paradigms: Project 2</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -82,13 +83,20 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">Project2</h1>
+<h1 class="title">Statistical Programming Paradigms: Project 2</h1>
+<p class="subtitle lead">View the <a href="https://github.com/OliverBrown16/Biostat777-Project2">Project Repo</a></p>
 </div>
 
 
 
 <div class="quarto-title-meta">
 
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Oliver Brown </p>
+          </div>
+  </div>
     
   
     
@@ -111,6 +119,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <li><p>A pair of side by side boxplots. This will involve binning counties into quartiles (Lowest to Highest) based on their median income and senior population. This plot will help compare the median and distribution of broadband access across these distinct groups, showing how moving from the lowest to highest group for each variable impacts access.</p></li>
 <li><p>A set of three maps to visualize the geographic distribution of each key variable (broadband access, senior population, and median income) side-by-side. This will help identify if the spatial pattern of broadband access more closely matches the pattern of income or age.</p></li>
 </ol>
+</section>
+<section id="data-extraction-and-cleaning" class="level2">
+<h2 class="anchored" data-anchor-id="data-extraction-and-cleaning">Data Extraction and Cleaning</h2>
+<p>The analysis is set to run for Washington State using data from the 2023 5-year American Community Survey (ACS), since this is the most recent available data.</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>state_abbr <span class="ot">&lt;-</span> <span class="st">"WA"</span></span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>target_year <span class="ot">&lt;-</span> <span class="dv">2023</span></span>
@@ -161,7 +173,7 @@ Geodetic CRS:  NAD83
 6 MULTIPOLYGON (((-123.371 46...</code></pre>
 </div>
 </div>
-<p>To get the total 65+ population, <strong>purrr::map_chr()</strong> is used to programmatically generate the list of all male and female senior age bracket variable IDs. The data is then saved locally as an .rds file to avoid repeat API calls.</p>
+<p>To get the total 65+ population, <strong>map_chr()</strong> is used to programmatically generate the list of all male and female senior age bracket variable IDs. The data is then saved locally as an .rds file to avoid repeat API calls.</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>age_vars_65plus_male <span class="ot">&lt;-</span> <span class="fu">map_chr</span>(<span class="dv">20</span><span class="sc">:</span><span class="dv">25</span>, <span class="sc">~</span> <span class="fu">paste0</span>(<span class="st">"B01001_0"</span>, .x))</span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>age_vars_65plus_female <span class="ot">&lt;-</span> <span class="fu">map_chr</span>(<span class="dv">44</span><span class="sc">:</span><span class="dv">49</span>, <span class="sc">~</span> <span class="fu">paste0</span>(<span class="st">"B01001_0"</span>, .x))</span>
@@ -235,7 +247,7 @@ Geodetic CRS:  NAD83
 6 53011 Clark County, Washington   median_income    94948  1484</code></pre>
 </div>
 </div>
-<p>We then clean and merge the three raw datasets. The internet data is pivoted wide, the age data is summarized to sum all 65+ brackets, and percentages are calculated for both. Finally, the three clean data frames are put into a list and joined together using <strong>purrr::reduce()</strong>.</p>
+<p>We then clean and merge the three raw datasets. The internet data is pivoted wide, the age data is summarized to sum all 65+ brackets, and percentages are calculated for both. Finally, the three clean data frames are put into a list and joined together using <strong>reduce()</strong>.</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>wa_internet_clean <span class="ot">&lt;-</span> wa_internet_raw <span class="sc">%&gt;%</span></span>
 <span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(GEOID, NAME, variable, estimate, geometry) <span class="sc">%&gt;%</span></span>
@@ -271,6 +283,9 @@ Geodetic CRS:  NAD83
 <span id="cb8-32"><a href="#cb8-32" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb8-33"><a href="#cb8-33" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(final_data)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
+</section>
+<section id="visualizations" class="level2">
+<h2 class="anchored" data-anchor-id="visualizations">Visualizations:</h2>
 <section id="visualization-1-side-by-side-scatter-plots" class="level3">
 <h3 class="anchored" data-anchor-id="visualization-1-side-by-side-scatter-plots">Visualization 1: Side-by-Side Scatter Plots</h3>
 <div class="cell">
@@ -302,7 +317,7 @@ Geodetic CRS:  NAD83
 <span id="cb9-26"><a href="#cb9-26" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
 <span id="cb9-27"><a href="#cb9-27" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()</span>
 <span id="cb9-28"><a href="#cb9-28" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-29"><a href="#cb9-29" aria-hidden="true" tabindex="-1"></a>plot_income <span class="sc">+</span> plot_age</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb9-29"><a href="#cb9-29" aria-hidden="true" tabindex="-1"></a>(plot_income <span class="sc">+</span> plot_age) <span class="sc">+</span> <span class="fu">plot_annotation</span>(<span class="at">caption =</span> <span class="st">"Source: 2023 5-year ACS (tidycensus)"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
@@ -330,23 +345,25 @@ Geodetic CRS:  NAD83
 <span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(<span class="at">labels =</span> scales<span class="sc">::</span><span class="fu">percent_format</span>()) <span class="sc">+</span></span>
 <span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
 <span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Broadband Access by Income Quartile"</span>,</span>
-<span id="cb10-15"><a href="#cb10-15" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"Median Income Quartile"</span>,</span>
-<span id="cb10-16"><a href="#cb10-16" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"Percent with Broadband"</span></span>
-<span id="cb10-17"><a href="#cb10-17" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb10-18"><a href="#cb10-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()</span>
-<span id="cb10-19"><a href="#cb10-19" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-20"><a href="#cb10-20" aria-hidden="true" tabindex="-1"></a>plot_box_age <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(data_with_bins, <span class="fu">aes</span>(<span class="at">x =</span> age_quartile, <span class="at">y =</span> pct_broadband)) <span class="sc">+</span></span>
-<span id="cb10-21"><a href="#cb10-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_boxplot</span>(<span class="fu">aes</span>(<span class="at">fill =</span> age_quartile), <span class="at">show.legend =</span> <span class="cn">FALSE</span>) <span class="sc">+</span></span>
-<span id="cb10-22"><a href="#cb10-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">alpha =</span> <span class="fl">0.4</span>) <span class="sc">+</span> </span>
-<span id="cb10-23"><a href="#cb10-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(<span class="at">labels =</span> scales<span class="sc">::</span><span class="fu">percent_format</span>()) <span class="sc">+</span></span>
-<span id="cb10-24"><a href="#cb10-24" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
-<span id="cb10-25"><a href="#cb10-25" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Broadband Access by Senior (65+) Pop. Quartile"</span>,</span>
-<span id="cb10-26"><a href="#cb10-26" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"Senior Population Quartile"</span>,</span>
-<span id="cb10-27"><a href="#cb10-27" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">""</span></span>
-<span id="cb10-28"><a href="#cb10-28" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb10-29"><a href="#cb10-29" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()</span>
-<span id="cb10-30"><a href="#cb10-30" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-31"><a href="#cb10-31" aria-hidden="true" tabindex="-1"></a>plot_box_income <span class="sc">+</span> plot_box_age</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb10-15"><a href="#cb10-15" aria-hidden="true" tabindex="-1"></a>    <span class="at">subtitle =</span> <span class="st">"Counties grouped into four equal-sized bins"</span>,</span>
+<span id="cb10-16"><a href="#cb10-16" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"Median Income Quartile"</span>,</span>
+<span id="cb10-17"><a href="#cb10-17" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"Percent with Broadband"</span></span>
+<span id="cb10-18"><a href="#cb10-18" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb10-19"><a href="#cb10-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()</span>
+<span id="cb10-20"><a href="#cb10-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-21"><a href="#cb10-21" aria-hidden="true" tabindex="-1"></a>plot_box_age <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(data_with_bins, <span class="fu">aes</span>(<span class="at">x =</span> age_quartile, <span class="at">y =</span> pct_broadband)) <span class="sc">+</span></span>
+<span id="cb10-22"><a href="#cb10-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_boxplot</span>(<span class="fu">aes</span>(<span class="at">fill =</span> age_quartile), <span class="at">show.legend =</span> <span class="cn">FALSE</span>) <span class="sc">+</span></span>
+<span id="cb10-23"><a href="#cb10-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">alpha =</span> <span class="fl">0.4</span>) <span class="sc">+</span> </span>
+<span id="cb10-24"><a href="#cb10-24" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(<span class="at">labels =</span> scales<span class="sc">::</span><span class="fu">percent_format</span>()) <span class="sc">+</span></span>
+<span id="cb10-25"><a href="#cb10-25" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb10-26"><a href="#cb10-26" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Broadband Access by Senior (65+) Pop. Quartile"</span>,</span>
+<span id="cb10-27"><a href="#cb10-27" aria-hidden="true" tabindex="-1"></a>    <span class="at">subtitle =</span> <span class="st">"Counties grouped into four equal-sized bins"</span>,</span>
+<span id="cb10-28"><a href="#cb10-28" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"Senior Population Quartile"</span>,</span>
+<span id="cb10-29"><a href="#cb10-29" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">""</span></span>
+<span id="cb10-30"><a href="#cb10-30" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb10-31"><a href="#cb10-31" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()</span>
+<span id="cb10-32"><a href="#cb10-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-33"><a href="#cb10-33" aria-hidden="true" tabindex="-1"></a>(plot_box_income <span class="sc">+</span> plot_box_age) <span class="sc">+</span> <span class="fu">plot_annotation</span>(<span class="at">caption =</span> <span class="st">"Source: 2023 5-year ACS (tidycensus)"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
@@ -378,7 +395,11 @@ Geodetic CRS:  NAD83
 <span id="cb11-16"><a href="#cb11-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Median Household Income"</span>, <span class="at">fill =</span> <span class="st">"Median Income"</span>) <span class="sc">+</span></span>
 <span id="cb11-17"><a href="#cb11-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_void</span>()</span>
 <span id="cb11-18"><a href="#cb11-18" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-19"><a href="#cb11-19" aria-hidden="true" tabindex="-1"></a>(map_income <span class="sc">+</span> map_65plus) <span class="sc">/</span> (map_broadband <span class="sc">+</span> <span class="fu">plot_spacer</span>())</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb11-19"><a href="#cb11-19" aria-hidden="true" tabindex="-1"></a>(map_income <span class="sc">+</span> map_65plus) <span class="sc">/</span> (map_broadband <span class="sc">+</span> <span class="fu">plot_spacer</span>()) <span class="sc">+</span> </span>
+<span id="cb11-20"><a href="#cb11-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot_annotation</span>(</span>
+<span id="cb11-21"><a href="#cb11-21" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Geographic Distribution of Key Variables"</span>,</span>
+<span id="cb11-22"><a href="#cb11-22" aria-hidden="true" tabindex="-1"></a>    <span class="at">subtitle =</span> <span class="st">"Comparing spatial patterns in Washington counties."</span>,</span>
+<span id="cb11-23"><a href="#cb11-23" aria-hidden="true" tabindex="-1"></a>    <span class="at">caption =</span> <span class="st">"Source: 2023 5-year ACS (tidycensus)"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
@@ -390,54 +411,61 @@ Geodetic CRS:  NAD83
 <p>This final visualization uses geom_sfto create three maps showing the geographic distribution of each key variable. One map is made for broadband access, one for median income, and one for the senior population.</p>
 </section>
 </section>
+<section id="analysis" class="level2">
+<h2 class="anchored" data-anchor-id="analysis">Analysis:</h2>
+<p>This analysis investigates if broadband access in Washington State counties is better explained by population age or affordability. Data was sourced from the U.S. Census Bureau’s 2023 5-year American Community Survey (ACS) via the tidycensus API. Data for median household income, total population, and population 65+ were extracted. These were processed to create three key variables: percentage of population 65+, median household income, and percentage of households with broadband. The variables were then joined and analyzed for correlation and geographic distribution.</p>
+<p>The analysis reveals that median household income is a significantly stronger predictor of broadband access than the county’s senior (65+) population. A strong, positive linear correlation exists between median income and broadband access rates. Conversely, the relationship between the senior population and broadband access was weaker and less conclusive. Geographic analysis confirmed this, as the spatial map of broadband access closely mirrored the map of median income, but not the map of the senior population.</p>
+<p>This analysis has several limitations. First, the county-level data is subject to the ecological fallacy, meaning results cannot be assumed to apply to individuals. Second, the analysis does not control for the key confounding variable of infrastructure availability. Physical infrastructure, which often correlates with income, was not included. Finally, the ACS data provides estimates, and the “broadband” variable lacks details on connection speed or quality.</p>
+</section>
 </section>
 <section id="part-2" class="level1">
 <h1>Part 2</h1>
+<p>This report details the process of scraping, cleaning, and visualizing the 2025 Seattle Mariners season game log from Wikipedia. The objective was to create a time-series visualization tracking the team’s performance relative to a .500 record (their win-loss differential) as the season progressed. This analysis uses the rvest package for web scraping and dplyr and ggplot2 for data manipulation and visualization.</p>
+</section>
+<section id="extracting-and-cleaning-data" class="level1">
+<h1>Extracting and Cleaning Data</h1>
+<p>The first step was to collect the game-by-game data. The data for the 2025 season is hosted on Wikipedia and split into multiple HTML tables (one for each month). The rvest package was used to read the page’s HTML. A key challenge was that the game logs were not in a single table. By inspecting the page, I identified that the relevant tables were the 2nd through 7th instances of the .wikitable class. The code below selects these specific tables, then uses the <strong>map_dfr()</strong> function to iterate over them, extract the data from each, and bind them all into a single raw data frame. This raw data was then saved as an .rds file for reproducibility.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(rvest)    </span>
-<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggrepel)</span>
-<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(readr)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>url <span class="ot">&lt;-</span> <span class="st">"https://en.wikipedia.org/wiki/2025_Seattle_Mariners_season"</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>m_page <span class="ot">&lt;-</span> <span class="fu">read_html</span>(url)</span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>game_log_raw <span class="ot">&lt;-</span> m_page <span class="sc">%&gt;%</span></span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">html_elements</span>(<span class="st">"table.wikitable"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>  .[<span class="fu">c</span>(<span class="dv">2</span>, <span class="dv">3</span>, <span class="dv">4</span>, <span class="dv">5</span>, <span class="dv">6</span>, <span class="dv">7</span>)] <span class="sc">%&gt;%</span></span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>  purrr<span class="sc">::</span><span class="fu">map_dfr</span>(<span class="sc">~</span> .x <span class="sc">%&gt;%</span> </span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>                   <span class="fu">html_table</span>(<span class="at">header =</span> <span class="cn">FALSE</span>, <span class="at">fill =</span> <span class="cn">TRUE</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a>                   <span class="fu">slice</span>(<span class="sc">-</span><span class="dv">1</span>)</span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a>                 )</span>
+<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a>mariners_file_path <span class="ot">&lt;-</span> <span class="st">"data/mariners_gamelog_raw.rds"</span></span>
+<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a><span class="fu">write_rds</span>(game_log_raw, mariners_file_path)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
+<p>The raw scraped data was not in an analyzable format. The next step was to clean and transform it using dplyr and tidyr. The script reads the saved .rds file, then filters for rows that represent completed games (identified by the “–” in the record column). It then uses transmute to select only the game number and the record string (e.g., “10–5”). The separate function splits this record into wins and losses columns. Finally, parse_number converts these text-based values into numeric data types. A new variable, win_differential, was calculated (Wins - Losses) to serve as the primary metric. A row for “Game 0” was added to ensure the visualization starts at the origin.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>url <span class="ot">&lt;-</span> <span class="st">"https://en.wikipedia.org/wiki/2025_Seattle_Mariners_season"</span></span>
-<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>m_page <span class="ot">&lt;-</span> <span class="fu">read_html</span>(url)</span>
-<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>game_log_raw <span class="ot">&lt;-</span> m_page <span class="sc">%&gt;%</span></span>
-<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">html_elements</span>(<span class="st">"table.wikitable"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>  .[<span class="fu">c</span>(<span class="dv">2</span>, <span class="dv">3</span>, <span class="dv">4</span>, <span class="dv">5</span>, <span class="dv">6</span>, <span class="dv">7</span>)] <span class="sc">%&gt;%</span></span>
-<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>  purrr<span class="sc">::</span><span class="fu">map_dfr</span>(<span class="sc">~</span> .x <span class="sc">%&gt;%</span> </span>
-<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>                   <span class="fu">html_table</span>(<span class="at">header =</span> <span class="cn">FALSE</span>, <span class="at">fill =</span> <span class="cn">TRUE</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a>                   <span class="fu">slice</span>(<span class="sc">-</span><span class="dv">1</span>)</span>
-<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a>                 )</span>
-<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-13"><a href="#cb13-13" aria-hidden="true" tabindex="-1"></a>mariners_file_path <span class="ot">&lt;-</span> <span class="st">"data/mariners_gamelog_raw.rds"</span></span>
-<span id="cb13-14"><a href="#cb13-14" aria-hidden="true" tabindex="-1"></a><span class="fu">write_rds</span>(game_log_raw, mariners_file_path)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</div>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Read in our saved data</span></span>
-<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>game_log_clean <span class="ot">&lt;-</span> <span class="fu">read_rds</span>(<span class="st">"data/mariners_gamelog_raw.rds"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">as_tibble</span>() <span class="sc">%&gt;%</span></span>
-<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="fu">str_detect</span>(X9, <span class="st">"–"</span>)) <span class="sc">%&gt;%</span></span>
-<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">transmute</span>(</span>
-<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">game_number =</span> <span class="fu">parse_number</span>(X1),</span>
-<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">record_str =</span> X9</span>
-<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
-<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">separate</span>(record_str, <span class="at">into =</span> <span class="fu">c</span>(<span class="st">"wins_str"</span>, <span class="st">"losses_str"</span>), <span class="at">sep =</span> <span class="st">"–"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">transmute</span>(</span>
-<span id="cb14-15"><a href="#cb14-15" aria-hidden="true" tabindex="-1"></a>    <span class="at">game_number =</span> game_number,</span>
-<span id="cb14-16"><a href="#cb14-16" aria-hidden="true" tabindex="-1"></a>    <span class="at">wins =</span> <span class="fu">parse_number</span>(wins_str),</span>
-<span id="cb14-17"><a href="#cb14-17" aria-hidden="true" tabindex="-1"></a>    <span class="at">losses =</span> <span class="fu">parse_number</span>(losses_str),</span>
-<span id="cb14-18"><a href="#cb14-18" aria-hidden="true" tabindex="-1"></a>    <span class="at">win_differential =</span> wins <span class="sc">-</span> losses</span>
-<span id="cb14-19"><a href="#cb14-19" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
-<span id="cb14-20"><a href="#cb14-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">add_row</span>(<span class="at">game_number =</span> <span class="dv">0</span>, <span class="at">wins =</span> <span class="dv">0</span>, <span class="at">losses =</span> <span class="dv">0</span>, <span class="at">win_differential =</span> <span class="dv">0</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb14-21"><a href="#cb14-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(game_number)</span>
-<span id="cb14-22"><a href="#cb14-22" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-23"><a href="#cb14-23" aria-hidden="true" tabindex="-1"></a><span class="fu">tail</span>(game_log_clean)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Read in our saved data</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>game_log_clean <span class="ot">&lt;-</span> <span class="fu">read_rds</span>(<span class="st">"data/mariners_gamelog_raw.rds"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">as_tibble</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="fu">str_detect</span>(X9, <span class="st">"–"</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">transmute</span>(</span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">game_number =</span> <span class="fu">parse_number</span>(X1),</span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">record_str =</span> X9</span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
+<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">separate</span>(record_str, <span class="at">into =</span> <span class="fu">c</span>(<span class="st">"wins_str"</span>, <span class="st">"losses_str"</span>), <span class="at">sep =</span> <span class="st">"–"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb13-13"><a href="#cb13-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-14"><a href="#cb13-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">transmute</span>(</span>
+<span id="cb13-15"><a href="#cb13-15" aria-hidden="true" tabindex="-1"></a>    <span class="at">game_number =</span> game_number,</span>
+<span id="cb13-16"><a href="#cb13-16" aria-hidden="true" tabindex="-1"></a>    <span class="at">wins =</span> <span class="fu">parse_number</span>(wins_str),</span>
+<span id="cb13-17"><a href="#cb13-17" aria-hidden="true" tabindex="-1"></a>    <span class="at">losses =</span> <span class="fu">parse_number</span>(losses_str),</span>
+<span id="cb13-18"><a href="#cb13-18" aria-hidden="true" tabindex="-1"></a>    <span class="at">win_differential =</span> wins <span class="sc">-</span> losses</span>
+<span id="cb13-19"><a href="#cb13-19" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
+<span id="cb13-20"><a href="#cb13-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">add_row</span>(<span class="at">game_number =</span> <span class="dv">0</span>, <span class="at">wins =</span> <span class="dv">0</span>, <span class="at">losses =</span> <span class="dv">0</span>, <span class="at">win_differential =</span> <span class="dv">0</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb13-21"><a href="#cb13-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(game_number)</span>
+<span id="cb13-22"><a href="#cb13-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-23"><a href="#cb13-23" aria-hidden="true" tabindex="-1"></a><span class="fu">tail</span>(game_log_clean)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 6 × 4
   game_number  wins losses win_differential
@@ -450,19 +478,22 @@ Geodetic CRS:  NAD83
 6         162    90     72               18</code></pre>
 </div>
 </div>
+<section id="visualization" class="level2">
+<h2 class="anchored" data-anchor-id="visualization">Visualization</h2>
+<p>The final, clean data was plotted using ggplot2 to visualize the season’s trajectory. The resulting line chart tracks the team’s win-loss differential over all 162 games. The dashed horizontal line at y=0 represents a .500 record (where the number of wins equals the number of losses). When the blue line is above this, the team has a winning record; when it’s below, they have a losing record.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(game_log_clean, <span class="fu">aes</span>(<span class="at">x =</span> game_number, <span class="at">y =</span> win_differential)) <span class="sc">+</span></span>
-<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_hline</span>(<span class="at">yintercept =</span> <span class="dv">0</span>, <span class="at">linetype =</span> <span class="st">"dashed"</span>, <span class="at">color =</span> <span class="st">"grey"</span>) <span class="sc">+</span></span>
-<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="at">color =</span> <span class="st">"darkblue"</span>, <span class="at">linewidth =</span> <span class="fl">0.75</span>) <span class="sc">+</span></span>
-<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
-<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Seattle Mariners 2025 Season: Win-Loss Differential"</span>,</span>
-<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">subtitle =</span> <span class="st">"Plot of (Wins - Losses) after each game of the regular season"</span>,</span>
-<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"Game Number"</span>,</span>
-<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"Games Above / Below .500"</span>,</span>
-<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">caption =</span> <span class="st">"Data: Wikipedia '2025 Seattle Mariners season' page"</span></span>
-<span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb16-11"><a href="#cb16-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_continuous</span>(<span class="at">breaks =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">20</span>, <span class="dv">40</span>, <span class="dv">60</span>, <span class="dv">81</span>, <span class="dv">100</span>, <span class="dv">120</span>, <span class="dv">140</span>, <span class="dv">162</span>)) <span class="sc">+</span></span>
-<span id="cb16-12"><a href="#cb16-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(game_log_clean, <span class="fu">aes</span>(<span class="at">x =</span> game_number, <span class="at">y =</span> win_differential)) <span class="sc">+</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_hline</span>(<span class="at">yintercept =</span> <span class="dv">0</span>, <span class="at">linetype =</span> <span class="st">"dashed"</span>, <span class="at">color =</span> <span class="st">"grey"</span>) <span class="sc">+</span></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="at">color =</span> <span class="st">"darkblue"</span>, <span class="at">linewidth =</span> <span class="fl">0.75</span>) <span class="sc">+</span></span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Seattle Mariners 2025 Season: Win-Loss Differential"</span>,</span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">subtitle =</span> <span class="st">"Plot of (Wins - Losses) after each game of the regular season"</span>,</span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"Game Number"</span>,</span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"Games Above / Below .500"</span>,</span>
+<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">caption =</span> <span class="st">"Source: Wikipedia '2025 Seattle Mariners season' page"</span></span>
+<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_continuous</span>(<span class="at">breaks =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">20</span>, <span class="dv">40</span>, <span class="dv">60</span>, <span class="dv">81</span>, <span class="dv">100</span>, <span class="dv">120</span>, <span class="dv">140</span>, <span class="dv">162</span>)) <span class="sc">+</span></span>
+<span id="cb15-12"><a href="#cb15-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
@@ -471,6 +502,16 @@ Geodetic CRS:  NAD83
 </div>
 </div>
 </div>
+</section>
+<section id="findings" class="level2">
+<h2 class="anchored" data-anchor-id="findings">Findings</h2>
+<p>Ultimately, the 2025 Mariners’ season was a story of streaks. After an initial slump that dropped them several games below .500, the team rallied with a strong winning streak. The season was characterized by this volatility: a mid-season decline erased their gains and briefly pulled them back down to .500. However, a powerful second-half surge pushed them to a new peak, and despite a late-season setback, they finished with a massive hot streak to end the season at 18 games above .500.</p>
+</section>
+<section id="limitations" class="level2">
+<h2 class="anchored" data-anchor-id="limitations">Limitations</h2>
+<p>The analysis has two primary limitations. First, the data heavily relies on the validity and timeliness of the game log table found on Wikipedia. As a community-edited source, it is not a formal, primary data feed and could contain temporary errors or lag behind official results.</p>
+<p>Second, the scraper itself is technically fragile. It is hard-coded to select specific table indices ([c(2, 3, 4, 5, 6, 7)]) and assumes the team’s record is always in a specific column (X9). If the Wikipedia page’s underlying HTML structure is altered in any way (for example, a new table is added before the record tables), the script will break or pull incorrect data.</p>
+</section>
 </section>
 
 </main>

@@ -1,5 +1,7 @@
 ---
-title: "Project2"
+title: "Statistical Programming Paradigms: Project 2"
+author: "Oliver Brown"
+subtitle: "View the [Project 2 Repo](https://github.com/OliverBrown16/Biostat777-Project2)"
 format: html
 ---
 
@@ -34,6 +36,7 @@ dir_create("data")
 
 ```
 
+The analysis is set to run for Washington State using data from the 2023 5-year American Community Survey (ACS), since this is the most recent available data.
 
 ```{r setup_project, message=FALSE, warning=FALSE}
 
@@ -204,7 +207,7 @@ plot_age <- ggplot(final_data, aes(x = pct_65plus, y = pct_broadband)) +
   ) +
   theme_minimal()
 
-plot_income + plot_age
+(plot_income + plot_age) + plot_annotation(caption = "Source: 2023 5-year ACS (tidycensus)")
 
 ```
 
@@ -229,6 +232,7 @@ plot_box_income <- ggplot(data_with_bins, aes(x = income_quartile, y = pct_broad
   scale_y_continuous(labels = scales::percent_format()) +
   labs(
     title = "Broadband Access by Income Quartile",
+    subtitle = "Counties grouped into four equal-sized bins",
     x = "Median Income Quartile",
     y = "Percent with Broadband"
   ) +
@@ -240,12 +244,13 @@ plot_box_age <- ggplot(data_with_bins, aes(x = age_quartile, y = pct_broadband))
   scale_y_continuous(labels = scales::percent_format()) +
   labs(
     title = "Broadband Access by Senior (65+) Pop. Quartile",
+    subtitle = "Counties grouped into four equal-sized bins",
     x = "Senior Population Quartile",
     y = ""
   ) +
   theme_minimal()
 
-plot_box_income + plot_box_age
+(plot_box_income + plot_box_age) + plot_annotation(caption = "Source: 2023 5-year ACS (tidycensus)")
 
 ```
 
@@ -273,7 +278,11 @@ map_income <- ggplot(final_data) +
   labs(title = "Median Household Income", fill = "Median Income") +
   theme_void()
 
-(map_income + map_65plus) / (map_broadband + plot_spacer())
+(map_income + map_65plus) / (map_broadband + plot_spacer()) + 
+  plot_annotation(
+    title = "Geographic Distribution of Key Variables",
+    subtitle = "Comparing spatial patterns in Washington counties.",
+    caption = "Source: 2023 5-year ACS (tidycensus)")
 
 ```
 
@@ -366,7 +375,7 @@ ggplot(game_log_clean, aes(x = game_number, y = win_differential)) +
     subtitle = "Plot of (Wins - Losses) after each game of the regular season",
     x = "Game Number",
     y = "Games Above / Below .500",
-    caption = "Data: Wikipedia '2025 Seattle Mariners season' page"
+    caption = "Source: Wikipedia '2025 Seattle Mariners season' page"
   ) +
   scale_x_continuous(breaks = c(1, 20, 40, 60, 81, 100, 120, 140, 162)) +
   theme_minimal()
