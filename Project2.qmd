@@ -1,7 +1,7 @@
 ---
 title: "Statistical Programming Paradigms: Project 2"
 author: "Oliver Brown"
-subtitle: "View the [Project 2 Repo](https://github.com/OliverBrown16/Biostat777-Project2)"
+subtitle: "[Project 2 Repo](https://github.com/OliverBrown16/Biostat777-Project2)"
 format: html
 ---
 
@@ -31,8 +31,6 @@ library(fs)
 library(patchwork)
 
 dir_create("data")
-
-#census_api_key("19fd8d5b9d01f28528d38d75acb6e2c924063482")
 
 ```
 
