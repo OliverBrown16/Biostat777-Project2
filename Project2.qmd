@@ -70,7 +70,7 @@ head(wa_internet_raw)
 
 ```
 
-To get the total 65+ population, **purrr::map_chr()** is used to programmatically generate the list of all male and female senior age bracket variable IDs. The data is then saved locally as an .rds file to avoid repeat API calls.
+To get the total 65+ population, **map_chr()** is used to programmatically generate the list of all male and female senior age bracket variable IDs. The data is then saved locally as an .rds file to avoid repeat API calls.
 
 ```{r extract_age, message=FALSE, warning=FALSE}
 
@@ -129,7 +129,7 @@ head(wa_income_raw)
 
 ```
 
-We then clean and merge the three raw datasets. The internet data is pivoted wide, the age data is summarized to sum all 65+ brackets, and percentages are calculated for both. Finally, the three clean data frames are put into a list and joined together using **purrr::reduce()**.
+We then clean and merge the three raw datasets. The internet data is pivoted wide, the age data is summarized to sum all 65+ brackets, and percentages are calculated for both. Finally, the three clean data frames are put into a list and joined together using **reduce()**.
 
 ```{r wrangle_data, message=FALSE, warning=FALSE, results='hide'}
 
@@ -289,13 +289,19 @@ This analysis has several limitations. First, the county-level data is subject t
 
 # Part 2 
 
-```{r message=FALSE, warning=FALSE}
+This report details the process of scraping, cleaning, and visualizing the 2025 Seattle Mariners season game log from Wikipedia. The objective was to create a time-series visualization tracking the team's performance relative to a .500 record (their win-loss differential) as the season progressed. This analysis uses the rvest package for web scraping and dplyr and ggplot2 for data manipulation and visualization.
+
+```{r message=FALSE, warning=FALSE, echo=FALSE}
 
 library(rvest)    
 library(ggrepel)
 library(readr)
 
 ```
+
+# Extracting and Cleaning Data
+
+The first step was to collect the game-by-game data. The data for the 2025 season is hosted on Wikipedia and split into multiple HTML tables (one for each month). The rvest package was used to read the page's HTML. A key challenge was that the game logs were not in a single table. By inspecting the page, I identified that the relevant tables were the 2nd through 7th instances of the .wikitable class. The code below selects these specific tables, then uses the **map_dfr()** function to iterate over them, extract the data from each, and bind them all into a single raw data frame. This raw data was then saved as an .rds file for reproducibility.
 
 ```{r}
 
@@ -315,6 +321,8 @@ mariners_file_path <- "data/mariners_gamelog_raw.rds"
 write_rds(game_log_raw, mariners_file_path)
 
 ```
+
+The raw scraped data was not in an analyzable format. The next step was to clean and transform it using dplyr and tidyr. The script reads the saved .rds file, then filters for rows that represent completed games (identified by the "–" in the record column). It then uses transmute to select only the game number and the record string (e.g., "10–5"). The separate function splits this record into wins and losses columns. Finally, parse_number converts these text-based values into numeric data types. A new variable, win_differential, was calculated (Wins - Losses) to serve as the primary metric. A row for "Game 0" was added to ensure the visualization starts at the origin.
 
 ```{r}
 
@@ -344,6 +352,10 @@ tail(game_log_clean)
 
 ```
 
+## Visualization
+
+The final, clean data was plotted using ggplot2 to visualize the season's trajectory. The resulting line chart tracks the team's win-loss differential over all 162 games. The dashed horizontal line at y=0 represents a .500 record (where the number of wins equals the number of losses). When the blue line is above this, the team has a winning record; when it's below, they have a losing record. 
+
 ```{r}
 
 ggplot(game_log_clean, aes(x = game_number, y = win_differential)) +
@@ -360,5 +372,15 @@ ggplot(game_log_clean, aes(x = game_number, y = win_differential)) +
   theme_minimal()
 
 ```
+
+## Findings
+
+Ultimately, the 2025 Mariners' season was a story of streaks. After an initial slump that dropped them several games below .500, the team rallied with a strong winning streak. The season was characterized by this volatility: a mid-season decline erased their gains and briefly pulled them back down to .500. However, a powerful second-half surge pushed them to a new peak, and despite a late-season setback, they finished with a massive hot streak to end the season at 18 games above .500.
+
+## Limitations
+
+The analysis has two primary limitations. First, the data heavily relies on the validity and timeliness of the game log table found on Wikipedia. As a community-edited source, it is not a formal, primary data feed and could contain temporary errors or lag behind official results.
+
+Second, the scraper itself is technically fragile. It is hard-coded to select specific table indices ([c(2, 3, 4, 5, 6, 7)]) and assumes the team's record is always in a specific column (X9). If the Wikipedia page's underlying HTML structure is altered in any way (for example, a new table is added before the record tables), the script will break or pull incorrect data.
       
 
